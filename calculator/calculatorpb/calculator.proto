@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package calculator;
+option go_package="calculator/calculatorpb";
+
+
+message InputParams {
+    int32 firstNumber = 1;
+    int32 secondNumber = 2;
+}
+
+message CalculatorReq{
+    InputParams input = 1;
+}
+
+message CalculatorResponse{
+    int32 result = 1;
+}
+
+service CalculatorService{
+    rpc Calculate(CalculatorReq) returns (CalculatorResponse) {};
+}
