@@ -21,14 +21,14 @@ func main() {
 	fmt.Println("Client Created...")
 
 	req := &factorpb.FactorRequest{
-		InputNumber: 210,
+		InputNumber: 5312412,
 	}
 
 	stream, err := c.Factor(context.Background(), req)
 	if err != nil {
 		log.Fatalf("Error starting streaming client, %v", err)
 	}
-	fmt.Println("Factor are: ")
+	fmt.Println("Factors are: ")
 	for {
 		output, err := stream.Recv()
 		if err == io.EOF {

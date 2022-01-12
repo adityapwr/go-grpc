@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package factor;
+option go_package="factor/factorpb";
+
+message FactorRequest {
+    int32 inputNumber = 1;
+}
+
+message FactorResponse {
+    int32 result = 1;
+}
+
+service FactorService {
+    rpc Factor(FactorRequest) returns (stream FactorResponse){};
+}
