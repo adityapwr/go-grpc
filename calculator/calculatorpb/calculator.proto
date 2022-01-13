@@ -20,3 +20,4 @@ message CalculatorResponse{
 service CalculatorService{
     rpc Calculate(CalculatorReq) returns (CalculatorResponse) {};
 }
+
