@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"grpc-go/calculator/calculatorpb"
+	"io"
 	"log"
 	"net"
 
@@ -21,6 +22,29 @@ func (s *server) Calculate(ctx context.Context, req *calculatorpb.CalculatorReq)
 	}
 	return res, nil
 }
+
+func (s *server) Average(stream calculatorpb.CalculatorService_AverageServer) error {
+	fmt.Println("Start average calculation...")
+	count := 0
+	sum := 0
+	for {
+		req, err := stream.Recv()
+		fmt.Printf("RecvMsg, %v \n", req)
+		if err == io.EOF {
+			stream.SendAndClose(&calculatorpb.AverageResponse{
+				Result: float64(sum) / float64(count),
+			})
+			return nil
+		}
+		if err != nil {
+			log.Fatalf("Error while reading from the stream, %v", req)
+		}
+		input := req.GetInputNum()
+		count += 1
+		sum += int(input)
+	}
+}
+
 func main() {
 	fmt.Printf("Starting calculator server...")
 
