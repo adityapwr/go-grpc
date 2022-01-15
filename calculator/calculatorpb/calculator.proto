@@ -25,9 +25,20 @@ message AverageResponse{
     double result = 1;
 }
 
+message MaxRequest{
+    int32 InputParam = 1;
+}
+
+
+message MaxResponse {
+    int32 result = 1;
+}
+
 service CalculatorService{
     rpc Calculate(CalculatorReq) returns (CalculatorResponse) {};
 
     rpc Average(stream AverageReq) returns (AverageResponse) {};
+
+    rpc Max(stream MaxRequest) returns (stream MaxResponse){};
 }
 

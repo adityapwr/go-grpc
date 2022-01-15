@@ -45,6 +45,28 @@ func (s *server) Average(stream calculatorpb.CalculatorService_AverageServer) er
 	}
 }
 
+func (s *server) Max(stream calculatorpb.CalculatorService_MaxServer) error {
+	fmt.Println("Start max calculation...")
+	currentMax := int32(0)
+	for {
+		req, err := stream.Recv()
+		fmt.Printf("RecvMsg, %v \n", req)
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			log.Fatalf("Error while reading from the stream, %v", req)
+		}
+		input := req.GetInputParam()
+		if input > currentMax {
+			currentMax = input
+			stream.SendMsg(&calculatorpb.CalculatorResponse{
+				Result: input,
+			})
+		}
+	}
+}
+
 func main() {
 	fmt.Printf("Starting calculator server...")
 

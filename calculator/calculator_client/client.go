@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"grpc-go/calculator/calculatorpb"
+	"io"
 	"log"
+	"time"
 
 	"google.golang.org/grpc"
 )
@@ -18,7 +20,8 @@ func main() {
 
 	c := calculatorpb.NewCalculatorServiceClient(cc)
 	// calculate(c)
-	average(c)
+	// average(c)
+	max(c)
 
 }
 
@@ -64,4 +67,53 @@ func average(c calculatorpb.CalculatorServiceClient) {
 	}
 	fmt.Println(res)
 
+}
+
+func max(c calculatorpb.CalculatorServiceClient) {
+	log.Println("Starting max function...")
+	requests := []*calculatorpb.MaxRequest{
+		{
+			InputParam: 1,
+		},
+		{
+			InputParam: 4,
+		},
+		{
+			InputParam: 2,
+		},
+		{
+			InputParam: 16,
+		},
+		{
+			InputParam: 8,
+		},
+	}
+
+	waitc := make(chan struct{})
+	stream, err := c.Max(context.Background())
+	if err != nil {
+		log.Fatalf("Error while starting stream, %v", err)
+	}
+	go func() {
+		for _, req := range requests {
+			stream.Send(req)
+			time.Sleep(1000 * time.Millisecond)
+		}
+		stream.CloseSend()
+	}()
+	go func() {
+		for {
+			res, err := stream.Recv()
+			if err == io.EOF {
+				close(waitc)
+				break
+			}
+			if err != nil {
+				log.Fatalf("Error while reading from stream, %v", err)
+				close(waitc)
+			}
+			fmt.Printf(" %v,", res.Result)
+		}
+	}()
+	<-waitc
 }

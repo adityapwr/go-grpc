@@ -6,6 +6,7 @@ import (
 	"grpc-go/greet/greetpb"
 	"io"
 	"log"
+	"time"
 
 	"google.golang.org/grpc"
 )
@@ -25,7 +26,8 @@ func main() {
 	// doUnary(c)
 	// doServerStreaming(c)
 
-	doClientStreaming(c)
+	// doClientStreaming(c)
+	doBiDiStream(c)
 }
 
 func doUnary(c greetpb.GreetServiceClient) {
@@ -105,5 +107,67 @@ func doClientStreaming(c greetpb.GreetServiceClient) {
 		log.Fatalf("Error while reciving response, %v", err)
 	}
 	fmt.Println(resp)
+
+}
+
+func doBiDiStream(c greetpb.GreetServiceClient) {
+	log.Println("Starting BiDi streaming...")
+
+	// ch := make(chan string)
+
+	reqests := []*greetpb.BiDiGreetRequest{
+		{
+			Greeting: &greetpb.Greeting{
+				FirstName: "Aditya",
+			},
+		},
+		{
+			Greeting: &greetpb.Greeting{
+				FirstName: "Kunal",
+			},
+		},
+		{
+			Greeting: &greetpb.Greeting{
+				FirstName: "Kim",
+			},
+		},
+		{
+			Greeting: &greetpb.Greeting{
+				FirstName: "Mat",
+			},
+		},
+	}
+	stream, err := c.BiDIGreet(context.Background())
+	if err != nil {
+		log.Fatalf("Error while setting bidi stream, %v", err)
+	}
+
+	waitc := make(chan struct{})
+	go func() {
+		for _, req := range reqests {
+			log.Printf("Sending message through stream..., %v", req)
+			if err := stream.Send(req); err != nil {
+				log.Fatalf("Errror while sending the stream, %v", err)
+			}
+			time.Sleep(1000 * time.Millisecond)
+		}
+		stream.CloseSend()
+	}()
+	go func() {
+		for {
+			msg, err := stream.Recv()
+			if err == io.EOF {
+				close(waitc)
+				break
+			}
+			if err != nil {
+				log.Fatalf("Error while reading from stream, %v", err)
+				close(waitc)
+			}
+			log.Printf("Response from the stream, %v", msg)
+		}
+	}()
+
+	<-waitc
 
 }

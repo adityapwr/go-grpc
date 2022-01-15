@@ -59,6 +59,27 @@ func (s *server) LongGreet(stream greetpb.GreetService_LongGreetServer) error {
 	}
 }
 
+func (s *server) BiDIGreet(stream greetpb.GreetService_BiDIGreetServer) error {
+	fmt.Println("BiDi Greet Function was invoked with a stream")
+	for {
+		req, err := stream.Recv()
+		log.Print(req)
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			log.Fatalf("Error while reading from stream, %v", err)
+		}
+		firstName := req.GetGreeting().GetFirstName()
+		if err := stream.SendMsg(&greetpb.BiDiGreetResponse{
+			Result: "Hello " + firstName + "!",
+		}); err != nil {
+			log.Fatalf("Error while sending response, %v", err)
+		}
+	}
+
+}
+
 func main() {
 	fmt.Println("hello world!")
 
