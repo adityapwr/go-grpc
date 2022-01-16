@@ -34,11 +34,21 @@ message MaxResponse {
     int32 result = 1;
 }
 
+message SquareRootRequest{
+    int32 input = 1;
+}
+
+message SquareRootResponse{
+    double result = 1;
+}
+
 service CalculatorService{
     rpc Calculate(CalculatorReq) returns (CalculatorResponse) {};
 
     rpc Average(stream AverageReq) returns (AverageResponse) {};
 
     rpc Max(stream MaxRequest) returns (stream MaxResponse){};
+
+    rpc SquareRoot(SquareRootRequest) returns (SquareRootResponse) {};
 }
 

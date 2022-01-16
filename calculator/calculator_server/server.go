@@ -6,9 +6,13 @@ import (
 	"grpc-go/calculator/calculatorpb"
 	"io"
 	"log"
+	"math"
 	"net"
+	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type server struct{}
@@ -65,6 +69,28 @@ func (s *server) Max(stream calculatorpb.CalculatorService_MaxServer) error {
 			})
 		}
 	}
+}
+
+func (s *server) SquareRoot(ctx context.Context, req *calculatorpb.SquareRootRequest) (*calculatorpb.SquareRootResponse, error) {
+	fmt.Println("Start square root calculation...")
+
+	for i := 0; i < 3; i++ {
+		if ctx.Err() == context.Canceled {
+			log.Println("Client canceled the request")
+			return nil, status.Errorf(codes.Canceled, "Client canceled the request hjvjkhgkjh")
+
+		}
+		time.Sleep(1 * time.Second)
+	}
+	number := req.GetInput()
+	if number < 0 {
+		return &calculatorpb.SquareRootResponse{
+			Result: 0,
+		}, status.Error(codes.InvalidArgument, fmt.Sprintf("Received a negative number: %v", number))
+	}
+	return &calculatorpb.SquareRootResponse{
+		Result: math.Sqrt(float64(number)),
+	}, nil
 }
 
 func main() {

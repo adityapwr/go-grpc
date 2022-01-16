@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func main() {
@@ -21,7 +23,9 @@ func main() {
 	c := calculatorpb.NewCalculatorServiceClient(cc)
 	// calculate(c)
 	// average(c)
-	max(c)
+	// max(c)
+	// squareRoot(c, 5*time.Second)
+	squareRoot(c, 2*time.Second)
 
 }
 
@@ -116,4 +120,29 @@ func max(c calculatorpb.CalculatorServiceClient) {
 		}
 	}()
 	<-waitc
+}
+
+func squareRoot(c calculatorpb.CalculatorServiceClient, timeout time.Duration) {
+	log.Println("Starting square function...")
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	req := &calculatorpb.SquareRootRequest{
+		Input: 4,
+	}
+	res, err := c.SquareRoot(ctx, req)
+	if err != nil {
+		statusErr, ok := status.FromError(err)
+		if ok {
+			if statusErr.Code() == codes.DeadlineExceeded {
+				cancel()
+				log.Fatalf(statusErr.Message())
+			} else {
+				log.Fatalf("Error with %v, %v", statusErr.Code(), statusErr.Message())
+			}
+		} else {
+			log.Fatalf("Error while calling square root, %v", err)
+
+		}
+	}
+	fmt.Printf("The calculated output is, %v \n", res.Result)
 }
